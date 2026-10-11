@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_todo/models/todo.dart';
+import 'package:flutter_todo/view/add_todo_dialog.dart';
+import 'package:flutter_todo/view/todo_item_tile.dart';
+import 'package:flutter_todo/view/widgets/empty_state.dart';
 import 'package:flutter_todo/viewmodels/todos_view_model.dart';
 
 class TodoListPage extends StatelessWidget {
@@ -7,11 +11,22 @@ class TodoListPage extends StatelessWidget {
 
   const TodoListPage({super.key, required this.listId});
 
+  Future<void> _addTodo(BuildContext context) async {
+    final viewModel = context.read<TodosViewModel>();
+
+    final todo = await showDialog<Todo>(
+      context: context,
+      builder: (_) => const AddTodoDialog(),
+    );
+
+    if (todo == null) return;
+    viewModel.addTodo(listId, todo);
+  }
+
   @override
   Widget build(BuildContext context) {
     final list = context.watch<TodosViewModel>().listById(listId);
 
-    // The list can disappear (e.g. removed while this page is open)
     if (list == null) {
       return Scaffold(
         appBar: AppBar(),
@@ -24,9 +39,87 @@ class TodoListPage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(list.name),
       ),
-      // PLACEHOLDER: real todo UI comes in step 5
-      body: Center(
-        child: Text('${list.todos.length} todos'),
+      body: list.isEmpty
+          ? EmptyState(
+              icon: Icons.check_circle_outline,
+              title: 'No todos yet',
+              message: 'Add your first todo to "${list.name}".',
+              actionLabel: 'Add a todo',
+              onAction: () => _addTodo(context),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _TodoSection(
+                  title: 'To do',
+                  listId: listId,
+                  todos: list.openTodos,
+                  emptyMessage: 'Nothing left to do. Nice work!',
+                ),
+                const SizedBox(height: 16),
+                _TodoSection(
+                  title: 'Completed',
+                  listId: listId,
+                  todos: list.completedTodos,
+                  emptyMessage: 'Nothing completed yet.',
+                ),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _addTodo(context),
+        tooltip: 'Add todo',
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _TodoSection extends StatelessWidget {
+  final String title;
+  final String listId;
+  final List<Todo> todos;
+  final String emptyMessage;
+
+  const _TodoSection({
+    required this.title,
+    required this.listId,
+    required this.todos,
+    required this.emptyMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              '$title (${todos.length})',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          if (todos.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                emptyMessage,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.outline),
+              ),
+            )
+          else
+            for (final todo in todos)
+              TodoItemTile(
+                key: ValueKey(todo.id),
+                listId: listId,
+                todo: todo,
+              ),
+        ],
       ),
     );
   }
