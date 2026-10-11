@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_todo/view/todo_page.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_todo/view/lists_overview_page.dart';
+import 'package:flutter_todo/viewmodels/todos_view_model.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => TodosViewModel(),
+      child: const MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,9 +20,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Todo',
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.black),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
       ),
-      home: const TodoPage(),
+      home: const ListsOverviewPage(),
     );
   }
 }

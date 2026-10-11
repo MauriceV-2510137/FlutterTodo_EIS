@@ -1,10 +1,41 @@
+
+import 'package:flutter_todo/models/id_generator.dart';
+
 class Todo {
-  String id;
-  String title;
-  DateTime dueDate;
-  String? description;
+  final String id;
+  final String title;
+  final String? description;
+  final DateTime? dueDate;
+  final bool completed;
 
-  bool completed;
+  Todo({
+    String? id,
+    required this.title,
+    String? description,
+    required this.dueDate,
+    this.completed = false
+    }) : id = id ?? generateId(), description = (description == null || description.trim().isEmpty) ? null : description.trim();
 
-  Todo({required this.title, required this.dueDate, this.description, this.completed = false}) : id = DateTime.now().microsecondsSinceEpoch.toString();
+  Todo copyWith({
+    String? title,
+    String? description,
+    DateTime? dueDate,
+    bool? completed,
+    bool clearDescription = false,
+    bool clearDueDate = false,
+  }) {
+    return Todo(
+      id: id,
+      title: title ?? this.title,
+      description: clearDescription ? null : (description ?? this.description),
+      dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
+      completed: completed ?? this.completed,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) => other is Todo && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
