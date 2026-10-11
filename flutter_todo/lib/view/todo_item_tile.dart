@@ -40,6 +40,12 @@ class TodoItemTile extends StatelessWidget {
               )
             : null,
       ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline),
+        tooltip: 'Delete todo',
+        onPressed: () =>
+            context.read<TodosViewModel>().removeTodo(listId, todo.id),
+      ),
       subtitle: (description == null && dueText == null)
           ? null
           : Column(

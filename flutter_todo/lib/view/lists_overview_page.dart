@@ -23,6 +23,32 @@ class ListsOverviewPage extends StatelessWidget {
     viewModel.addList(name);
   }
 
+  Future<void> _deleteList(BuildContext context, TodoList list) async {
+    final viewModel = context.read<TodosViewModel>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete list?'),
+        content: Text('"${list.name}" and all its todos will be deleted.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      viewModel.removeList(list.id);
+    }
+  }
+
   String _subtitle(TodoList list) {
     if (list.isEmpty) return 'No todos yet';
     final open = list.openTodos.length;
@@ -56,7 +82,17 @@ class ListsOverviewPage extends StatelessWidget {
                     child: ListTile(
                       title: Text(list.name),
                       subtitle: Text(_subtitle(list)),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: 'Delete list',
+                            onPressed: () => _deleteList(context, list),
+                          ),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
