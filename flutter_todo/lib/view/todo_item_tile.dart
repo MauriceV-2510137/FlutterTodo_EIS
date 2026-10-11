@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_todo/models/date_only.dart';
 import 'package:flutter_todo/models/todo.dart';
 import 'package:flutter_todo/viewmodels/todos_view_model.dart';
+import 'package:flutter_todo/view/todo_dialog.dart';
 
 class TodoItemTile extends StatelessWidget {
   final String listId;
@@ -10,6 +11,18 @@ class TodoItemTile extends StatelessWidget {
 
   const TodoItemTile({super.key, required this.listId, required this.todo});
 
+  Future<void> _editTodo(BuildContext context) async {
+    final viewModel = context.read<TodosViewModel>();
+
+    final updated = await showDialog<Todo>(
+      context: context,
+      builder: (_) => TodoDialog(todo: todo),
+    );
+
+    if (updated == null) return;
+    viewModel.updateTodo(listId, updated);
+  }
+  
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -46,6 +59,7 @@ class TodoItemTile extends StatelessWidget {
         onPressed: () =>
             context.read<TodosViewModel>().removeTodo(listId, todo.id),
       ),
+      onTap: () => _editTodo(context),
       subtitle: (description == null && dueText == null)
           ? null
           : Column(

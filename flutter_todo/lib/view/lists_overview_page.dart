@@ -10,8 +10,6 @@ class ListsOverviewPage extends StatelessWidget {
   const ListsOverviewPage({super.key});
 
   Future<void> _addList(BuildContext context) async {
-    // Grab the view model before the await, so we don't use
-    // the context after an async gap.
     final viewModel = context.read<TodosViewModel>();
 
     final name = await showDialog<String>(
@@ -21,6 +19,18 @@ class ListsOverviewPage extends StatelessWidget {
 
     if (name == null) return;
     viewModel.addList(name);
+  }
+
+  Future<void> _renameList(BuildContext context, TodoList list) async {
+    final viewModel = context.read<TodosViewModel>();
+
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => ListNameDialog(initialName: list.name),
+    );
+
+    if (name == null) return;
+    viewModel.renameList(list.id, name);
   }
 
   Future<void> _deleteList(BuildContext context, TodoList list) async {
@@ -85,6 +95,11 @@ class ListsOverviewPage extends StatelessWidget {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            tooltip: 'Rename list',
+                            onPressed: () => _renameList(context, list),
+                          ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
                             tooltip: 'Delete list',

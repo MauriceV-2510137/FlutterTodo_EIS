@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_todo/models/todo.dart';
-import 'package:flutter_todo/view/add_todo_dialog.dart';
+import 'package:flutter_todo/view/todo_dialog.dart';
 import 'package:flutter_todo/view/todo_item_tile.dart';
 import 'package:flutter_todo/view/widgets/empty_state.dart';
 import 'package:flutter_todo/viewmodels/todos_view_model.dart';
@@ -16,7 +16,7 @@ class TodoListPage extends StatelessWidget {
 
     final todo = await showDialog<Todo>(
       context: context,
-      builder: (_) => const AddTodoDialog(),
+      builder: (_) => const TodoDialog(),
     );
 
     if (todo == null) return;

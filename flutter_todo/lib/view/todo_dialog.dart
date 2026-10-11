@@ -2,19 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_todo/models/date_only.dart';
 import 'package:flutter_todo/models/todo.dart';
 
-class AddTodoDialog extends StatefulWidget {
-  const AddTodoDialog({super.key});
+class TodoDialog extends StatefulWidget {
+  final Todo? todo;
+
+  const TodoDialog({super.key, this.todo});
 
   @override
-  State<AddTodoDialog> createState() => _AddTodoDialogState();
+  State<TodoDialog> createState() => _TodoDialogState();
 }
 
-class _AddTodoDialogState extends State<AddTodoDialog> {
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
+class _TodoDialogState extends State<TodoDialog> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
 
   DateTime? _dueDate;
   String? _titleError;
+
+  bool get _isEditing => widget.todo != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.todo?.title);
+    _descriptionController =
+        TextEditingController(text: widget.todo?.description);
+    _dueDate = widget.todo?.dueDate;
+  }
 
   @override
   void dispose() {
@@ -25,10 +38,15 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
 
   Future<void> _pickDate() async {
     final today = dateOnly(DateTime.now());
+
+    final existing = _dueDate;
+    final firstDate =
+        (existing != null && existing.isBefore(today)) ? existing : today;
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _dueDate ?? today,
-      firstDate: today,
+      initialDate: existing ?? today,
+      firstDate: firstDate,
       lastDate: DateTime(2100),
     );
     if (date != null) setState(() => _dueDate = date);
@@ -40,13 +58,26 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
       setState(() => _titleError = 'Please enter a title');
       return;
     }
-    Navigator.of(context).pop(
-      Todo(
-        title: title,
-        description: _descriptionController.text,
-        dueDate: _dueDate,
-      ),
-    );
+
+    final existing = widget.todo;
+    if (existing == null) {
+      Navigator.of(context).pop(
+        Todo(
+          title: title,
+          description: _descriptionController.text,
+          dueDate: _dueDate,
+        ),
+      );
+    } else {
+      Navigator.of(context).pop(
+        existing.copyWith( //Same id
+          title: title,
+          description: _descriptionController.text,
+          dueDate: _dueDate,
+          clearDueDate: _dueDate == null,
+        ),
+      );
+    }
   }
 
   @override
@@ -56,7 +87,7 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
         : MaterialLocalizations.of(context).formatMediumDate(_dueDate!);
 
     return AlertDialog(
-      title: const Text('Add todo'),
+      title: Text(_isEditing ? 'Edit todo' : 'Add todo'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -109,7 +140,10 @@ class _AddTodoDialogState extends State<AddTodoDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        FilledButton(onPressed: _save, child: const Text('Add')),
+        FilledButton(
+          onPressed: _save,
+          child: Text(_isEditing ? 'Save' : 'Add'),
+        ),
       ],
     );
   }
