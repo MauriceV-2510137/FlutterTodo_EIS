@@ -80,13 +80,17 @@ class TodosViewModel extends ChangeNotifier {
     );
   }
 
-  void reorderTodos(String listId, int oldIndex, int newIndex) {
+  void reorderOpenTodos(String listId, int oldIndex, int newIndex) {
     _updateList(listId, (list) {
-      final todos = [...list.todos];
+      // ReorderableListView reports newIndex one too high when moving down
       if (newIndex > oldIndex) newIndex -= 1;
-      final moved = todos.removeAt(oldIndex);
-      todos.insert(newIndex, moved);
-      return list.copyWith(todos: todos);
+
+      final open = [...list.openTodos];
+      final moved = open.removeAt(oldIndex);
+      open.insert(newIndex, moved);
+
+      // Open todos first in their new order, completed todos after them
+      return list.copyWith(todos: [...open, ...list.completedTodos]);
     });
   }
 

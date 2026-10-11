@@ -55,6 +55,7 @@ class TodoListPage extends StatelessWidget {
                   listId: listId,
                   todos: list.openTodos,
                   emptyMessage: 'Nothing left to do. Nice work!',
+                  reorderable: true,
                 ),
                 const SizedBox(height: 16),
                 _TodoSection(
@@ -62,6 +63,8 @@ class TodoListPage extends StatelessWidget {
                   listId: listId,
                   todos: list.completedTodos,
                   emptyMessage: 'Nothing completed yet.',
+                  onClear: () =>
+                      context.read<TodosViewModel>().clearCompleted(listId),
                 ),
               ],
             ),
@@ -79,12 +82,16 @@ class _TodoSection extends StatelessWidget {
   final String listId;
   final List<Todo> todos;
   final String emptyMessage;
+  final bool reorderable;
+  final VoidCallback? onClear;
 
   const _TodoSection({
     required this.title,
     required this.listId,
     required this.todos,
     required this.emptyMessage,
+    this.reorderable = false,
+    this.onClear,
   });
 
   @override
@@ -96,11 +103,22 @@ class _TodoSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              '$title (${todos.length})',
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+            padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$title (${todos.length})',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                if (onClear != null && todos.isNotEmpty)
+                  TextButton(
+                    onPressed: onClear,
+                    child: const Text('Remove all'),
+                  ),
+              ],
             ),
           ),
           if (todos.isEmpty)
@@ -111,6 +129,23 @@ class _TodoSection extends StatelessWidget {
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: theme.colorScheme.outline),
               ),
+            )
+          else if (reorderable)
+            ReorderableListView(
+              // Needed because this list sits inside another scrolling list
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              onReorderItem: (oldIndex, newIndex) => context
+                  .read<TodosViewModel>()
+                  .reorderOpenTodos(listId, oldIndex, newIndex),
+              children: [
+                for (final todo in todos)
+                  TodoItemTile(
+                    key: ValueKey(todo.id),
+                    listId: listId,
+                    todo: todo,
+                  ),
+              ],
             )
           else
             for (final todo in todos)
