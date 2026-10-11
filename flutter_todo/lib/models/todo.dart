@@ -38,4 +38,24 @@ class Todo {
 
   @override
   int get hashCode => id.hashCode;
+
+  // Storage //
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'dueDate': dueDate?.toIso8601String(),
+    'completed': completed,
+  };
+
+  factory Todo.fromJson(Map<String, dynamic> json) {
+    final due = json['dueDate'] as String?;
+    return Todo(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      dueDate: due == null ? null : DateTime.parse(due),
+      completed: json['completed'],
+    );
+  }
 }

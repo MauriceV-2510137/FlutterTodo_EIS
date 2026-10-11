@@ -1,9 +1,23 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_todo/models/todo.dart';
 import 'package:flutter_todo/models/todo_list.dart';
+import 'package:flutter_todo/storage/todo_storage.dart';
 
 class TodosViewModel extends ChangeNotifier {
   final List<TodoList> _lists = [];
+  final TodoStorage _storage;
+
+  TodosViewModel(this._storage);
+
+  Future<void> load() async {
+    _lists.addAll(await _storage.load());
+    notifyListeners();
+  }
+
+  void _changed() {
+    notifyListeners();
+    _storage.save(_lists);
+  }
 
   List<TodoList> get lists => List.unmodifiable(_lists);
 
@@ -20,7 +34,7 @@ class TodosViewModel extends ChangeNotifier {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return;
     _lists.add(TodoList(name: trimmed));
-    notifyListeners();
+    _changed();
   }
 
   void renameList(String listId, String name) {
@@ -31,7 +45,7 @@ class TodosViewModel extends ChangeNotifier {
 
   void removeList(String listId) {
     _lists.removeWhere((list) => list.id == listId);
-    notifyListeners();
+    _changed();
   }
 
   // ---------- Todos ----------
@@ -98,6 +112,6 @@ class TodosViewModel extends ChangeNotifier {
     final index = _lists.indexWhere((l) => l.id == listId);
     if (index == -1) return;
     _lists[index] = change(_lists[index]);
-    notifyListeners();
+    _changed();
   }
 }

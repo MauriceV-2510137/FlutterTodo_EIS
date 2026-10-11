@@ -33,4 +33,19 @@ class TodoList {
 
   @override
   int get hashCode => id.hashCode;
+
+  // Storage //
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'todos': todos.map((t) => t.toJson()).toList(),
+  };
+
+  factory TodoList.fromJson(Map<String, dynamic> json) {
+    return TodoList(
+      id: json['id'],
+      name: json['name'],
+      todos: (json['todos'] as List).map((t) => Todo.fromJson(t)).toList(),
+    );
+  }
 }
