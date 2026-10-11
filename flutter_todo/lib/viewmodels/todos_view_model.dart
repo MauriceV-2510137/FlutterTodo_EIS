@@ -82,8 +82,6 @@ class TodosViewModel extends ChangeNotifier {
 
   void reorderOpenTodos(String listId, int oldIndex, int newIndex) {
     _updateList(listId, (list) {
-      // ReorderableListView reports newIndex one too high when moving down
-      if (newIndex > oldIndex) newIndex -= 1;
 
       final open = [...list.openTodos];
       final moved = open.removeAt(oldIndex);
